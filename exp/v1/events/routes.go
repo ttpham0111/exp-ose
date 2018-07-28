@@ -2,17 +2,18 @@ package events
 
 import (
 	"github.com/go-chi/chi"
+
+	"github.com/ttpham0111/exp-ose/exp/services"
 )
 
-func NewRouter(yelpApiKey) *chi.Mux {
+func NewRouter(yelpApiKey string) *chi.Mux {
 	router := chi.NewRouter()
 
 	events := service{
-		yelpApiKey: yelpApiKey,
+		yelp: services.NewYelpService(yelpApiKey),
 	}
 
-	router.Get("/events", events.find)
-	router.Get("/events/{eventId}", events.get)
+	router.Get("/", events.find)
 
 	return router
 }

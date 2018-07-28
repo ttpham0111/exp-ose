@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/url"
 )
@@ -19,58 +20,35 @@ func NewYelpService(apiKey string) *YelpService {
 	}
 }
 
-type BusinessQuery struct {
-	term      string
-	location  string
-	latitude  string
-	longitude string
+type YelpLocation struct {
+	City     string `json:"city"`
+	Country  string `json:"country"`
+	Address1 string `json:"address1"`
+	Address2 string `json:"address2"`
+	Address3 string `json:"address3"`
+	State    string `json:"state"`
+	ZipCode  string `json: zip_code`
 }
 
-func (q *BusinessQuery) rawQuery() string {
-	payload = url.Values{}
-
-	payload.add("term", q.term)
-
-	if q.location != "" {
-		payload.add("location", q.location)
-	}
-
-	if q.latitude != "" {
-		payload.add("latitude", q.latitude)
-	}
-
-	if q.longitude != "" {
-		payload.add("longitude", q.longitude)
-	}
-
-	if q.limit > 0 {
-		payload.add("limit", q.limit)
-	}
-
-	return payload.Encode()
+type YelpBusiness struct {
+	Name        string       `json:"name"`
+	Url         string       `json:"url"`
+	ImageURL    string       `json:"image_url"`
+	Rating      float32      `json:"rating"`
+	ReviewCount int          `json:"review_count"`
+	Location    YelpLocation `json:"location"`
 }
 
-type Location struct {
-	city     string
-	country  string
-	address2 string
-	address3 string
-	state    string
-	address1 string
-	zipCode  string `json: zip_code`
-}
+func (service *YelpService) FindBusinesses(query Query) ([]YelpBusiness, error) {
+	url := service.apiURL + businessAPI + "/search?" + query.Encode()
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
 
-type Business struct {
-	name        string
-	url         string
-	imageURL    string
-	rating      int
-	reviewCount int `json: review_count`
-	location    Location
-}
+	req.Header.Add("Authorization", "Bearer "+service.apiKey)
 
-func (service *YelpService) findBusinesses(query *BusinessQuery) (businesses []Business) {
-	res, err := http.Get(service.apiURL + businessAPI + "/search?" + payload.Encode())
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -80,10 +58,12 @@ func (service *YelpService) findBusinesses(query *BusinessQuery) (businesses []B
 		return nil, err
 	}
 
-	var body map[string]interface{}
+	var body struct {
+		Businesses []YelpBusiness `json:"businesses"`
+	}
 	if err = json.NewDecoder(res.Body).Decode(&body); err != nil {
-		return nul, err
+		return nil, err
 	}
 
-	businesses = body["businesses"].([]Business)
+	return body.Businesses, nil
 }

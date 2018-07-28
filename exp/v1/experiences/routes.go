@@ -9,8 +9,7 @@ func NewRouter() *chi.Mux {
 
 	experiences := service{}
 
-	router.Get("/experiences", experiences.find)
-	router.Get("/experiences/{experienceId}", experiences.get)
+	router.Get("/", experiences.find)
 
 	return router
 }

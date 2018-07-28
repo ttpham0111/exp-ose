@@ -1,21 +1,15 @@
 package experience
 
 import (
-	"encoding/json"
+	// "encoding/json"
 	"net/http"
 
-	"github.com/go-chi/chi"
-
-	"github.com/ttpham0111/exp-ose/exp"
+	"github.com/ttpham0111/exp-ose/exp/util"
 )
 
 type service struct {
 }
 
 func (s *service) find(w http.ResponseWriter, r *http.Request) {
-	exp.JsonResponse(w, []], http.StatusOK)
-}
-
-func (s *service) get(w http.ResponseWriter, r *http.Request) {
-	experienceId := chi.URLParam(r, "experienceId")
+	util.JsonResponse(w, "hello", http.StatusOK)
 }

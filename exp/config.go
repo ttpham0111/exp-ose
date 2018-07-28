@@ -1,7 +1,7 @@
 package main
 
 import (
-	"os"
+	"github.com/ttpham0111/exp-ose/exp/util"
 )
 
 type config struct {
@@ -11,13 +11,10 @@ type config struct {
 }
 
 func newConfig() *config {
-	port = os.Getenv("PORT")
-	if port == "" {
-		port = "3000"
-	}
+	port := util.Getenv("PORT", "3000")
 
 	return &config{
 		port:       port,
-		yelpApiKey: os.Getenv("YELP_API_KEY"),
+		yelpApiKey: util.EnsureEnv("YELP_API_KEY"),
 	}
 }
