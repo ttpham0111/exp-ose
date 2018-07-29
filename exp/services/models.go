@@ -1,3 +1,5 @@
+package services
+
 type Query interface {
-  Encode() string
+	Encode() string
 }

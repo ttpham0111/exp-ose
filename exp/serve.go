@@ -3,69 +3,70 @@ package main
 import (
 	"log"
 	"net/http"
-	"strings"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/gin-gonic/gin"
 
-	"github.com/ttpham0111/exp-ose/exp/util"
-	"github.com/ttpham0111/exp-ose/exp/v1"
+	"github.com/ttpham0111/exp-ose/exp/database"
+	"github.com/ttpham0111/exp-ose/exp/services"
+
+	"github.com/ttpham0111/exp-ose/exp/v1/events"
+	"github.com/ttpham0111/exp-ose/exp/v1/experiences"
 )
 
 const (
 	version = "0.0.1"
 )
 
-func newRouter(conf *config) *chi.Mux {
-	router := chi.NewRouter()
+type Server struct {
+	conf *config
+	db   *database.Database
+	yelp services.YelpService
+}
 
-	// Middlewares
-	router.Use(middleware.Logger)
-	router.Use(middleware.Recoverer)
-
-	// Blueprints
-	v1Blueprint := v1.Blueprint{
-		YelpApiKey: conf.yelpApiKey,
+func NewServer() (*Server, error) {
+	conf := newConfig()
+	db, err := database.NewDatabase(conf.dbUrl, conf.dbName)
+	if err != nil {
+		return nil, err
 	}
 
-	router.Route("/v1", v1Blueprint.Register)
+	return &Server{
+		conf: conf,
+		db:   db,
+		yelp: services.NewYelpService(conf.yelpApiKey),
+	}, nil
+}
 
-	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		util.JsonResponse(
-			w,
-			map[string]string{
-				"status":  "OK",
-				"version": version,
-			},
-			http.StatusOK,
-		)
+func (server *Server) newRouter() *gin.Engine {
+	router := gin.Default()
+
+	router.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "OK",
+			"version": version,
+		})
+	})
+
+	events.Register(router.Group("/v1/events"), &events.Service{
+		Collection: server.db.EventCollection,
+		Yelp:       server.yelp,
+	})
+
+	experiences.Register(router.Group("/v1/experiences"), &experiences.Service{
+		ExperienceCollection: server.db.ExperienceCollection,
+		EventCollection:      server.db.EventCollection,
 	})
 
 	return router
 }
 
-func printRoutes(router *chi.Mux) {
-	walkFunc := func(
-		method string,
-		route string,
-		_ http.Handler,
-		_ ...func(http.Handler) http.Handler,
-	) error {
-		log.Printf("  %s %s\n", method, strings.Replace(route, "/*", "", -1))
-		return nil
-	}
-
-	if err := chi.Walk(router, walkFunc); err != nil {
+func main() {
+	server, err := NewServer()
+	if err != nil {
 		log.Fatal(err)
 	}
-}
+	defer server.db.Close()
 
-func main() {
-	conf := newConfig()
-	router := newRouter(conf)
-
-	log.Println("Serving on localhost:" + conf.port)
-	printRoutes(router)
-
-	log.Fatal(http.ListenAndServe(":"+conf.port, router))
+	log.Println("Serving on localhost:" + server.conf.port)
+	log.Fatal(server.newRouter().Run(":" + server.conf.port))
 }

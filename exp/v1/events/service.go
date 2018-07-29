@@ -3,23 +3,17 @@ package events
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
+
+	"github.com/ttpham0111/exp-ose/exp/database"
 	"github.com/ttpham0111/exp-ose/exp/services"
-	"github.com/ttpham0111/exp-ose/exp/util"
 )
 
-type service struct {
-	yelp *services.YelpService
+type Service struct {
+	Collection database.EventCollectionReader
+	Yelp       services.YelpService
 }
 
-func (s *service) find(w http.ResponseWriter, r *http.Request) {
-	// TODO: goroutine for other API's
-	if yelpBusinesses, err := s.yelp.FindBusinesses(r.URL.Query()); err != nil {
-		if e, ok := err.(services.ClientError); ok {
-			util.JsonResponse(w, e.Message, e.StatusCode)
-		} else {
-			panic(err)
-		}
-	} else {
-		util.JsonResponse(w, yelpBusinesses, http.StatusOK)
-	}
+func (s *Service) find(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"from": "events/find"})
 }

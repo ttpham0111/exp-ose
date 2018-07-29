@@ -1,15 +1,25 @@
-package experience
+package experiences
 
 import (
-	// "encoding/json"
 	"net/http"
 
-	"github.com/ttpham0111/exp-ose/exp/util"
+	"github.com/gin-gonic/gin"
+	"github.com/ttpham0111/exp-ose/exp/database"
 )
 
-type service struct {
+type Service struct {
+	ExperienceCollection database.ExperienceCollectionReader
+	EventCollection      database.EventCollectionReader
 }
 
-func (s *service) find(w http.ResponseWriter, r *http.Request) {
-	util.JsonResponse(w, "hello", http.StatusOK)
+func (s *Service) find(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"from": "experience/find"})
+}
+
+func (s *Service) findId(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"from": "experience/findId"})
+}
+
+func (s *Service) findIdEvents(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"from": "experience/findIdEvents"})
 }

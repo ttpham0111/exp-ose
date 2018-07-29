@@ -9,6 +9,6 @@ type ClientError struct {
 	StatusCode int
 }
 
-func (se ClientError) Error() string {
-	return fmt.Sprintf("[%s] %s", se.StatusCode, se.Message)
+func (err ClientError) Error() string {
+	return fmt.Sprintf("[%s] %s", err.StatusCode, err.Message)
 }

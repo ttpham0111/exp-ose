@@ -3,18 +3,21 @@ package services
 import (
 	"encoding/json"
 	"net/http"
-	"net/url"
 )
 
 const businessAPI = "/businesses"
 
-type YelpService struct {
+type YelpService interface {
+	FindBusinesses(Query) ([]YelpBusiness, error)
+}
+
+type yelpServiceContext struct {
 	apiURL string
 	apiKey string
 }
 
-func NewYelpService(apiKey string) *YelpService {
-	return &YelpService{
+func NewYelpService(apiKey string) *yelpServiceContext {
+	return &yelpServiceContext{
 		apiURL: "https://api.yelp.com/v3",
 		apiKey: apiKey,
 	}
@@ -39,14 +42,14 @@ type YelpBusiness struct {
 	Location    YelpLocation `json:"location"`
 }
 
-func (service *YelpService) FindBusinesses(query Query) ([]YelpBusiness, error) {
-	url := service.apiURL + businessAPI + "/search?" + query.Encode()
+func (ctx *yelpServiceContext) FindBusinesses(query Query) ([]YelpBusiness, error) {
+	url := ctx.apiURL + businessAPI + "/search?" + query.Encode()
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Add("Authorization", "Bearer "+service.apiKey)
+	req.Header.Add("Authorization", "Bearer "+ctx.apiKey)
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {

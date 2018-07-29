@@ -1,15 +1,11 @@
-package experience
+package experiences
 
 import (
-	"github.com/go-chi/chi"
+	"github.com/gin-gonic/gin"
 )
 
-func NewRouter() *chi.Mux {
-	router := chi.NewRouter()
-
-	experiences := service{}
-
-	router.Get("/", experiences.find)
-
-	return router
+func Register(router *gin.RouterGroup, experiencesService *Service) {
+	router.GET("", experiencesService.find)
+	router.GET(":id", experiencesService.findId)
+	router.GET(":id/events", experiencesService.findIdEvents)
 }
