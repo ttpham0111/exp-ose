@@ -2,26 +2,26 @@ package database
 
 import (
 	"github.com/globalsign/mgo"
-	"github.com/globalsign/mgo/bson"
 )
 
+const eventType = "Event"
+
 type EventCollectionReader interface {
-	Find(EventQuery) (Event, error)
-	FindIds([]bson.ObjectId) ([]Event, error)
+	Find(EventQuery) ([]*Event, error)
 }
 
 type EventCollection struct {
 	c *mgo.Collection
 }
 
-type EventQuery bson.M
-
-func (c *EventCollection) Find(query EventQuery) (events Event, err error) {
-	err = c.c.Find(query).All(&events)
-	return events, err
+type EventQuery struct {
+	Name string
+	Location
+	Source EventSource
 }
 
-func (c *EventCollection) FindIds(ids []bson.ObjectId) (events []Event, err error) {
-	err = c.c.Find(bson.M{"_id": bson.M{"$in": ids}}).All(&events)
+func (c *EventCollection) Find(query EventQuery) ([]*Event, error) {
+	events := make([]*Event, 0)
+	err := c.c.Find(query).All(&events)
 	return events, err
 }

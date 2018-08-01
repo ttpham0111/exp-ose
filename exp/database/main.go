@@ -4,6 +4,41 @@ import (
 	"github.com/globalsign/mgo"
 )
 
+const (
+	experienceCollection      = "experiences"
+	experienceEventCollection = "experiences_events"
+	collaboratorCollection    = "collaborators"
+	commentCollection         = "comments"
+	eventCollection           = "events"
+)
+
+type QueryModifier struct {
+	SortBy  string
+	SortAsc bool
+	Skip    int
+	Limit   int
+}
+
+func (m QueryModifier) modify(q *mgo.Query) *mgo.Query {
+	if m.SortBy != "" {
+		if !m.SortAsc {
+			m.SortBy = "-" + m.SortBy
+		}
+
+		q = q.Sort(m.SortBy)
+	}
+
+	if m.Skip > 0 {
+		q = q.Skip(m.Skip)
+	}
+
+	if m.Limit > 0 {
+		q = q.Limit(m.Limit)
+	}
+
+	return q
+}
+
 type Database struct {
 	session *mgo.Session
 	*EventCollection
@@ -18,10 +53,17 @@ func NewDatabase(url string, dbName string) (*Database, error) {
 
 	db := session.DB(dbName)
 
+	eventCollection := &EventCollection{db.C(eventCollection)}
+
 	return &Database{
-		session:              session,
-		EventCollection:      &EventCollection{db.C("events")},
-		ExperienceCollection: &ExperienceCollection{db.C("experiences")},
+		session:         session,
+		EventCollection: eventCollection,
+		ExperienceCollection: &ExperienceCollection{
+			experiences:       db.C(experienceCollection),
+			experiencesEvents: db.C(experienceEventCollection),
+			collaborators:     db.C(collaboratorCollection),
+			comments:          db.C(commentCollection),
+		},
 	}, nil
 }
 

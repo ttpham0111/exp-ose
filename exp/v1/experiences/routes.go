@@ -7,5 +7,5 @@ import (
 func Register(router *gin.RouterGroup, experiencesService *Service) {
 	router.GET("", experiencesService.find)
 	router.GET(":id", experiencesService.findId)
-	router.GET(":id/events", experiencesService.findIdEvents)
+	router.GET(":id/comments", experiencesService.getCommentsById)
 }
