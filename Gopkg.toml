@@ -3,8 +3,8 @@
   install = "./exp/..."
 
 [[constraint]]
+  branch = "master"
   name = "github.com/gin-gonic/gin"
-  version = "1.2.0"
 
 [[constraint]]
   branch = "master"
