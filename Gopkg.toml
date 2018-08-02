@@ -1,6 +1,6 @@
 [metadata.heroku]
-  root-package = "github.com/ttpham0111/exp-ose/exp"
-  install = "./..."
+  root-package = "github.com/ttpham0111/exp-ose"
+  install = "./exp/..."
 
 [[constraint]]
   name = "github.com/gin-gonic/gin"
