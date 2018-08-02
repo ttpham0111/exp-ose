@@ -1,0 +1,21 @@
+[metadata.heroku]
+  root-package = "github.com/ttpham0111/exp-ose/exp"
+  install = ["./exp"]
+  ensure = "false"
+  additional-tools = ["github.com/mattes/migrate"]
+
+[[constraint]]
+  name = "github.com/gin-gonic/gin"
+  version = "1.2.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/globalsign/mgo"
+
+[[constraint]]
+  name = "gopkg.in/go-playground/validator.v8"
+  version = "8.18.1"
+
+[prune]
+  go-tests = true
+  unused-packages = true
