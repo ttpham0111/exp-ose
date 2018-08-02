@@ -1,7 +1,6 @@
 [metadata.heroku]
   root-package = "github.com/ttpham0111/exp-ose/exp"
   install = ["./exp"]
-  ensure = "false"
   additional-tools = ["github.com/mattes/migrate"]
 
 [[constraint]]
