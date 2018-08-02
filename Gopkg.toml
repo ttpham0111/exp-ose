@@ -1,6 +1,6 @@
 [metadata.heroku]
   root-package = "github.com/ttpham0111/exp-ose/exp"
-  install = "./exp/*.go"
+  install = "./exp/..."
   additional-tools = ["github.com/mattes/migrate"]
 
 [[constraint]]
