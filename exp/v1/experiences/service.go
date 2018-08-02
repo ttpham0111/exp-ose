@@ -4,8 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gopkg.in/go-playground/validator.v8"
 
 	"github.com/ttpham0111/exp-ose/exp/database"
+	"github.com/ttpham0111/exp-ose/exp/util"
 )
 
 type Service struct {
@@ -20,31 +22,21 @@ type ExperienceResponse struct {
 }
 
 func (s *Service) find(c *gin.Context) {
-	owner := c.GetString("owner")
-	isPublic := c.GetBool("is_public")
-	name := c.GetString("name")
-	tags := c.GetStringSlice("tags")
+	var query database.ExperienceQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		e := util.FirstError(err.(validator.ValidationErrors))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid value for " + e.Name})
+		return
+	}
 
-	sortBy := c.GetString("sort_by")
-	sortAsc := c.GetBool("sort_asc")
+	var modifier database.QueryModifier
+	if err := c.ShouldBindQuery(&modifier); err != nil {
+		e := util.FirstError(err.(validator.ValidationErrors))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid value for " + e.Name})
+		return
+	}
 
-	skip := c.GetInt("skip")
-	limit := c.GetInt("limit")
-
-	experiences, err := s.ExperienceCollection.Find(
-		database.ExperienceQuery{
-			Owner:    owner,
-			IsPublic: isPublic,
-			Name:     name,
-			Tags:     tags,
-		},
-		database.QueryModifier{
-			SortBy:  sortBy,
-			SortAsc: sortAsc,
-			Skip:    skip,
-			Limit:   limit,
-		},
-	)
+	experiences, err := s.ExperienceCollection.Find(query, modifier)
 	if err != nil {
 		panic(err)
 	}
@@ -68,7 +60,7 @@ func (s *Service) findId(c *gin.Context) {
 	events, err := s.ExperienceCollection.GetEventsById(experienceId)
 
 	var collaborators []database.UserId
-	if c.GetBool("include_collaborators") {
+	if _, exists := c.GetQuery("include_collaborators"); exists {
 		collaborators, err = s.ExperienceCollection.GetCollaboratorsById(experienceId)
 		if err != nil {
 			panic(err)
@@ -84,16 +76,14 @@ func (s *Service) findId(c *gin.Context) {
 
 func (s *Service) getCommentsById(c *gin.Context) {
 	experienceId := c.Param("id")
-	skip := c.GetInt("skip")
-	limit := c.GetInt("limit")
 
-	comments, err := s.ExperienceCollection.GetCommentsById(
-		experienceId,
-		database.QueryModifier{
-			Skip:  skip,
-			Limit: limit,
-		},
-	)
+	var modifier database.QueryModifier
+	if err := c.ShouldBindQuery(&modifier); err != nil {
+		e := util.FirstError(err.(validator.ValidationErrors))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid value for " + e.Name})
+	}
+
+	comments, err := s.ExperienceCollection.GetCommentsById(experienceId, modifier)
 	if err != nil {
 		if e, ok := err.(database.NoResultFound); ok {
 			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})

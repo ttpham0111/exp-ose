@@ -1,8 +1,10 @@
-package main
+package util
 
 import (
 	"log"
 	"os"
+
+	"gopkg.in/go-playground/validator.v8"
 )
 
 func Getenv(name string, fallback string) string {
@@ -18,4 +20,11 @@ func EnsureEnv(name string) string {
 	}
 	log.Fatal("Missing environmental variable: " + name)
 	return ""
+}
+
+func FirstError(errors validator.ValidationErrors) *validator.FieldError {
+	for _, err := range errors {
+		return err
+	}
+	return nil
 }

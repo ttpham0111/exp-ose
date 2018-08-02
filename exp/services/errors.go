@@ -5,10 +5,17 @@ import (
 )
 
 type ClientError struct {
-	Message    string
-	StatusCode int
+	JsonResponse string
+	Message      string
+	StatusCode   int
 }
 
 func (err ClientError) Error() string {
-	return fmt.Sprintf("[%s] %s", err.StatusCode, err.Message)
+	msg := err.JsonResponse
+
+	if msg == "" {
+		msg = fmt.Sprintf("[%v] %v", err.StatusCode, err.Message)
+	}
+
+	return msg
 }

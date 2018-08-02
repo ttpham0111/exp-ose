@@ -2,7 +2,10 @@ package services
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
+	"net/url"
+	"strconv"
 )
 
 const businessAPI = "/businesses"
@@ -40,6 +43,36 @@ type YelpBusiness struct {
 	Rating      float32      `json:"rating"`
 	ReviewCount int          `json:"review_count"`
 	Location    YelpLocation `json:"location"`
+}
+
+type YelpQuery struct {
+	Term      string   `form:"term"`
+	Location  string   `form:"location"`
+	Latitude  *float64 `form:"latitude" binding:"omitempty,latitude"`
+	Longitude *float64 `form:"longitude" binding:"omitempty,longitude"`
+	Limit     int      `form:"limit" binding:"omitempty,gt=0"`
+}
+
+func (q YelpQuery) Encode() string {
+	v := url.Values{}
+	v.Add("term", q.Term)
+
+	if q.Location != "" {
+		v.Add("location", q.Location)
+	}
+
+	if q.Latitude != nil && q.Longitude != nil {
+		v.Add("latitude", strconv.FormatFloat(*q.Latitude, 'f', -1, 64))
+		v.Add("longitude", strconv.FormatFloat(*q.Latitude, 'f', -1, 64))
+	}
+
+	if q.Limit > 0 {
+		v.Add("limit", strconv.Itoa(q.Limit))
+	}
+
+	log.Println(v.Encode())
+
+	return v.Encode()
 }
 
 func (ctx *yelpServiceContext) FindBusinesses(query Query) ([]YelpBusiness, error) {

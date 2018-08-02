@@ -13,10 +13,10 @@ const (
 )
 
 type QueryModifier struct {
-	SortBy  string
-	SortAsc bool
-	Skip    int
-	Limit   int
+	SortBy  string `form:"sort_by"`
+	SortAsc bool   `form:"sort_asc"`
+	Skip    int    `form:"skip" binding:"omitempty,gt=0"`
+	Limit   int    `form:"limit" binding:"omitempty,gt=0"`
 }
 
 func (m QueryModifier) modify(q *mgo.Query) *mgo.Query {

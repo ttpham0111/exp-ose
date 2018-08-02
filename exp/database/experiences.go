@@ -23,15 +23,15 @@ type ExperienceCollection struct {
 }
 
 type ExperienceQuery struct {
-	Owner    string
-	IsPublic bool
-	Name     string
-	Tags     []string
+	Owner     string   `form:"owner"`
+	IsPrivate bool     `form:"is_private"`
+	Name      string   `form:"name"`
+	Tags      []string `form:"tags" binding:"omitempty,gt=0"`
 }
 
 func (c *ExperienceCollection) Find(eq ExperienceQuery, m QueryModifier) ([]*Experience, error) {
 	var fq = bson.M{
-		"is_public": eq.IsPublic,
+		"is_private": eq.IsPrivate,
 	}
 
 	if eq.Owner != "" {

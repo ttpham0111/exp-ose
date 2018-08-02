@@ -18,10 +18,17 @@ func raiseForStatus(res *http.Response) error {
 
 	if res.StatusCode >= 500 {
 		return errors.New(string(message))
-	} else {
-		return ClientError{
-			Message:    string(message),
-			StatusCode: res.StatusCode,
-		}
 	}
+
+	clientError := ClientError{
+		StatusCode: res.StatusCode,
+	}
+
+	if res.Header.Get("Content-Type") == "application/json" {
+		clientError.JsonResponse = string(message)
+	} else {
+		clientError.Message = string(message)
+	}
+
+	return clientError
 }

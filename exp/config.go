@@ -1,5 +1,9 @@
 package main
 
+import (
+	"github.com/ttpham0111/exp-ose/exp/util"
+)
+
 type config struct {
 	port string
 
@@ -10,14 +14,14 @@ type config struct {
 }
 
 func newConfig() *config {
-	port := Getenv("PORT", "3000")
+	port := util.Getenv("PORT", "3000")
 
 	return &config{
 		port: port,
 
-		dbUrl:  EnsureEnv("DB_URL"),
-		dbName: EnsureEnv("DB_NAME"),
+		dbUrl:  util.EnsureEnv("DB_URL"),
+		dbName: util.EnsureEnv("DB_NAME"),
 
-		yelpApiKey: EnsureEnv("YELP_API_KEY"),
+		yelpApiKey: util.EnsureEnv("YELP_API_KEY"),
 	}
 }

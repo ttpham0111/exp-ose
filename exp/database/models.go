@@ -13,19 +13,17 @@ type UserId string
 type EventSource int
 
 const (
-	DB EventSource = iota
+	User = iota
 	Yelp
 	Eventbrite
 	Google
-	User
 )
 
 var eventSourceItoa = map[EventSource]string{
-	DB:         "db",
+	User:       "user",
 	Yelp:       "yelp",
 	Eventbrite: "eventbrite",
 	Google:     "google",
-	User:       "user",
 }
 
 var eventSourceAtoi = reverseMap(eventSourceItoa)
@@ -58,10 +56,10 @@ func (source *EventSource) UnmarshalJSON(buffer []byte) error {
 type Experience struct {
 	Id          bson.ObjectId `json:"id" bson:"_id"`
 	Owner       UserId        `json:"owner" bson:"owner"`
-	IsPublic    bool          `json:"is_public" bson:"is_public"`
+	IsPrivate   bool          `json:"is_private" bson:"is_private"`
 	Name        string        `json:"name" bson:"name"`
 	ImageURL    string        `json:"image_url" bson:"image_url"`
-	Rating      int           `json:"rating" bson:"rating"`
+	Rating      float32       `json:"rating" bson:"rating"`
 	Tags        []string      `json:"tags" bson:"tags"`
 	NumEvents   int           `json:"num_events" bson:"num_events"`
 	NumComments int           `json:"num_comments" bson:"num_comments"`
