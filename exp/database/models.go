@@ -58,16 +58,15 @@ func (source *ActivitySource) UnmarshalJSON(buffer []byte) error {
 }
 
 type Experience struct {
-	Id            bson.ObjectId        `json:"id" bson:"_id"`
-	Owner         UserId               `json:"owner" bson:"owner" binding:"required"`
-	Collaborators []UserId             `json:"collaborators" bson:"collaborators" binding:"omitempty,gt=0"`
-	IsPrivate     bool                 `json:"is_private" bson:"is_private"`
-	Name          string               `json:"name" bson:"name" binding:"required"`
-	ImageURL      string               `json:"image_url" bson:"image_url"`
-	Rating        float32              `json:"rating" bson:"rating"`
-	NumRatings    int                  `json:"num_ratings" bson:"num_ratings"`
-	Tags          []string             `json:"tags" bson:"tags"`
-	Activities    []ExperienceActivity `json:"activities" bson:"activities"`
+	Id            bson.ObjectId `json:"id" bson:"_id"`
+	Owner         UserId        `json:"owner" bson:"owner" binding:"required"`
+	Collaborators []UserId      `json:"collaborators" bson:"collaborators"`
+	IsPrivate     bool          `json:"is_private" bson:"is_private"`
+	Name          string        `json:"name" bson:"name" binding:"required"`
+	ImageURL      string        `json:"image_url" bson:"image_url"`
+	Tags          []string      `json:"tags" bson:"tags"`
+	Activities    []Activity    `json:"activities" bson:"activities" binding:"dive"`
+	CreatedAt     time.Time     `json:"created_at" bson:"created_at"`
 }
 
 type Comment struct {
@@ -80,11 +79,35 @@ type Comment struct {
 
 type SourceMetadata map[string]interface{}
 
-type ExperienceActivity struct {
-	StartsAt       time.Time      `json:"starts_at" bson:"starts_at"`
-	EndsAt         time.Time      `json:"ends_at" bson:"ends_at"`
+type Activity struct {
 	Name           string         `json:"name" bson:"name" binding:"required"`
 	ImageURL       string         `json:"image_url" bson:"image_url"`
+	StartsAt       *time.Time     `json:"starts_at" bson:"starts_at"`
+	EndsAt         *time.Time     `json:"ends_at" bson:"ends_at"`
 	Source         ActivitySource `json:"source" bson:"source" binding:"exists"`
 	SourceMetadata SourceMetadata `json:"source_metadata" bson:"source_metadata"`
+}
+
+func (exp *Experience) initializeIfNil() {
+	if exp.Tags == nil {
+		exp.Tags = make([]string, 0)
+	}
+
+	if exp.Collaborators == nil {
+		exp.Collaborators = make([]UserId, 0)
+	}
+
+	if exp.Activities == nil {
+		exp.Activities = make([]Activity, 0)
+	} else {
+		for i := range exp.Activities {
+			exp.Activities[i].initializeIfNil()
+		}
+	}
+}
+
+func (act *Activity) initializeIfNil() {
+	if act.SourceMetadata == nil {
+		act.SourceMetadata = make(SourceMetadata)
+	}
 }

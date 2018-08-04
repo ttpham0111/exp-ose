@@ -14,11 +14,6 @@ type Service struct {
 	ExperienceCollection database.ExperienceCollectionReadWriter
 }
 
-type ExperienceResponse struct {
-	*database.Experience
-	Activities []*database.ExperienceActivity `json:"activities"`
-}
-
 func (s *Service) find(c *gin.Context) {
 	var query database.ExperienceQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -54,15 +49,7 @@ func (s *Service) findId(c *gin.Context) {
 		panic(err)
 	}
 
-	activities, err := s.ExperienceCollection.GetActivitiesById(experienceId)
-	if err != nil {
-		panic(err)
-	}
-
-	c.JSON(http.StatusOK, ExperienceResponse{
-		Experience: experience,
-		Activities: activities,
-	})
+	c.JSON(http.StatusOK, experience)
 }
 
 func (s *Service) getCommentsById(c *gin.Context) {
@@ -100,10 +87,6 @@ func (s *Service) create(c *gin.Context) {
 	c.JSON(http.StatusCreated, &experience)
 }
 
-func (s *Service) addRating(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"in": "addRating"})
-}
-
 func (s *Service) addComment(c *gin.Context) {
 	experienceId := c.Param("id")
 
@@ -124,26 +107,6 @@ func (s *Service) addComment(c *gin.Context) {
 	c.JSON(http.StatusCreated, &comment)
 }
 
-func (s *Service) addActivity(c *gin.Context) {
-	experienceId := c.Param("id")
-
-	var expActivity database.ExperienceActivity
-	if err := c.ShouldBindJSON(&expActivity); err != nil {
-		util.HandleBindError(c, err)
-		return
-	}
-
-	if err := s.ExperienceCollection.AddActivity(experienceId, &expActivity); err != nil {
-		if e, ok := err.(database.NoResultFound); ok {
-			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
-			return
-		}
-		panic(err)
-	}
-
-	c.JSON(http.StatusCreated, &expActivity)
-}
-
 func (s *Service) update(c *gin.Context) {
 	experienceId := c.Param("id")
 
@@ -161,33 +124,13 @@ func (s *Service) update(c *gin.Context) {
 		panic(err)
 	}
 
-	c.JSON(http.StatusNoContent, nil)
-}
-
-func (s *Service) removeRating(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"in": "removeRating"})
+	c.JSON(http.StatusOK, &experience)
 }
 
 func (s *Service) removeComment(c *gin.Context) {
-	experienceId := c.Param("id")
 	commentId := c.Param("commentId")
 
-	if err := s.ExperienceCollection.RemoveComment(experienceId, commentId); err != nil {
-		if e, ok := err.(database.NoResultFound); ok {
-			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
-			return
-		}
-		panic(err)
-	}
-
-	c.JSON(http.StatusNoContent, nil)
-}
-
-func (s *Service) removeActivity(c *gin.Context) {
-	experienceId := c.Param("id")
-	expActivityId := c.Param("activityId")
-
-	if err := s.ExperienceCollection.RemoveActivity(experienceId, expActivityId); err != nil {
+	if err := s.ExperienceCollection.RemoveComment(commentId); err != nil {
 		if e, ok := err.(database.NoResultFound); ok {
 			c.JSON(http.StatusNotFound, gin.H{"error": e.Error()})
 			return

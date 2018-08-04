@@ -7,9 +7,8 @@ import (
 const (
 	experienceTransactionCollection = "experiences.transactions"
 	experienceCollection            = "experiences"
-	experienceActivityCollection    = "experiences_activities"
+	ratingCollection                = "ratings"
 	commentCollection               = "comments"
-	activityCollection              = "activities"
 )
 
 type QueryModifier struct {
@@ -41,7 +40,6 @@ func (m QueryModifier) modify(q *mgo.Query) *mgo.Query {
 
 type Database struct {
 	session *mgo.Session
-	*ActivityCollection
 	*ExperienceCollection
 }
 
@@ -53,17 +51,13 @@ func NewDatabase(url string, dbName string) (*Database, error) {
 
 	db := session.DB(dbName)
 
-	actCollection := &ActivityCollection{db.C(activityCollection)}
-
 	return &Database{
-		session:            session,
-		ActivityCollection: actCollection,
+		session: session,
 		ExperienceCollection: &ExperienceCollection{
-			transactions:          db.C(experienceTransactionCollection),
-			experiences:           db.C(experienceCollection),
-			comments:              db.C(commentCollection),
-			experiencesActivities: db.C(experienceActivityCollection),
-			activities:            actCollection,
+			transactions: db.C(experienceTransactionCollection),
+			experiences:  db.C(experienceCollection),
+			ratings:      db.C(ratingCollection),
+			comments:     db.C(commentCollection),
 		},
 	}, nil
 }

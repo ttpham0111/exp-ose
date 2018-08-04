@@ -2,7 +2,6 @@ package services
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -69,8 +68,6 @@ func (q YelpQuery) Encode() string {
 	if q.Limit > 0 {
 		v.Add("limit", strconv.Itoa(q.Limit))
 	}
-
-	log.Println(v.Encode())
 
 	return v.Encode()
 }

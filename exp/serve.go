@@ -48,8 +48,7 @@ func (server *Server) newRouter() *gin.Engine {
 	})
 
 	activities.Register(router.Group("/v1/activities"), &activities.Service{
-		ActivityCollection: server.db.ActivityCollection,
-		Yelp:               server.yelp,
+		Yelp: server.yelp,
 	})
 
 	experiences.Register(router.Group("/v1/experiences"), &experiences.Service{

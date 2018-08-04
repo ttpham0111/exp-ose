@@ -2,9 +2,12 @@ package util
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/go-playground/validator.v8"
@@ -40,11 +43,17 @@ func HandleBindError(c *gin.Context, err error) {
 	switch er := err.(type) {
 	case validator.ValidationErrors:
 		fe := FirstError(er)
-		errMessage = "invalid value for " + fe.Name
+		errMessage = "invalid value for " + fe.FieldNamespace
 	case database.ValidationError:
 		errMessage = er.Error()
 	case *json.SyntaxError:
-		errMessage = er.Error()
+		errMessage = "invalid JSON"
+	case *time.ParseError:
+		errMessage = fmt.Sprintf(
+			"invalid time '%s', expecting format '%s'",
+			strings.Trim(er.Value, "\""),
+			strings.Trim(er.Layout, "\""),
+		)
 	default:
 		panic(err)
 	}
