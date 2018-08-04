@@ -3,14 +3,13 @@ package database
 import (
 	"bytes"
 	"encoding/json"
-	"net/url"
 	"time"
 
 	"github.com/globalsign/mgo/bson"
 )
 
 type UserId string
-type EventSource int
+type ActivitySource int
 
 const (
 	User = iota
@@ -19,87 +18,73 @@ const (
 	Google
 )
 
-var eventSourceItoa = map[EventSource]string{
+var activitySourceItoa = map[ActivitySource]string{
 	User:       "user",
 	Yelp:       "yelp",
 	Eventbrite: "eventbrite",
 	Google:     "google",
 }
 
-var eventSourceAtoi = reverseMap(eventSourceItoa)
+var ActivitySourceAtoi = reverseMap(activitySourceItoa)
 
-func reverseMap(m map[EventSource]string) map[string]EventSource {
-	n := make(map[string]EventSource)
+func reverseMap(m map[ActivitySource]string) map[string]ActivitySource {
+	n := make(map[string]ActivitySource)
 	for k, v := range m {
 		n[v] = k
 	}
 	return n
 }
 
-func (source *EventSource) MarshalJSON() ([]byte, error) {
+func (source *ActivitySource) MarshalJSON() ([]byte, error) {
 	buffer := bytes.NewBufferString(`"`)
-	buffer.WriteString(eventSourceItoa[*source])
+	buffer.WriteString(activitySourceItoa[*source])
 	buffer.WriteString(`"`)
 	return buffer.Bytes(), nil
 }
 
-func (source *EventSource) UnmarshalJSON(buffer []byte) error {
+func (source *ActivitySource) UnmarshalJSON(buffer []byte) error {
 	var name string
 	if err := json.Unmarshal(buffer, &name); err != nil {
 		return err
 	}
 
-	*source = eventSourceAtoi[name]
+	val, exists := ActivitySourceAtoi[name]
+	if !exists {
+		return ValidationError{"source"}
+	}
+
+	*source = val
 	return nil
 }
 
 type Experience struct {
-	Id          bson.ObjectId `json:"id" bson:"_id"`
-	Owner       UserId        `json:"owner" bson:"owner"`
-	IsPrivate   bool          `json:"is_private" bson:"is_private"`
-	Name        string        `json:"name" bson:"name"`
-	ImageURL    string        `json:"image_url" bson:"image_url"`
-	Rating      float32       `json:"rating" bson:"rating"`
-	Tags        []string      `json:"tags" bson:"tags"`
-	NumEvents   int           `json:"num_events" bson:"num_events"`
-	NumComments int           `json:"num_comments" bson:"num_comments"`
-	CreatedAt   time.Time     `json:"created_at" bson:"created_at"`
-}
-
-type Collaborators struct {
-	Id            bson.ObjectId `json:"id" bson:"_id"`
-	ExperienceId  bson.ObjectId `json:"experience_id" bson:"experience_id"`
-	Collaborators []UserId      `json:"collaborators" bson:"collaborators"`
-}
-
-type ExperienceEvent struct {
-	Id           bson.ObjectId `json:"id" bson:"_id"`
-	ExperienceId bson.ObjectId `json:"experience_id" bson:"experience_id"`
-	StartsAt     time.Time     `json:"time" bson:"time"`
-	EndsAt       time.Time     `json:"time" bson:"time"`
-	Event
+	Id            bson.ObjectId        `json:"id" bson:"_id"`
+	Owner         UserId               `json:"owner" bson:"owner" binding:"required"`
+	Collaborators []UserId             `json:"collaborators" bson:"collaborators" binding:"omitempty,gt=0"`
+	IsPrivate     bool                 `json:"is_private" bson:"is_private"`
+	Name          string               `json:"name" bson:"name" binding:"required"`
+	ImageURL      string               `json:"image_url" bson:"image_url"`
+	Rating        float32              `json:"rating" bson:"rating"`
+	NumRatings    int                  `json:"num_ratings" bson:"num_ratings"`
+	Tags          []string             `json:"tags" bson:"tags"`
+	Activities    []ExperienceActivity `json:"activities" bson:"activities"`
 }
 
 type Comment struct {
 	Id           bson.ObjectId `json:"id" bson:"_id"`
 	ExperienceId bson.ObjectId `json:"experience_id" bson:"experience_id"`
-	Owner        UserId        `json:"owner" bson:"owner"`
-	Text         string        `json:"text" bson:"text"`
+	Owner        UserId        `json:"owner" bson:"owner" binding:"required"`
+	Text         string        `json:"text" bson:"text" binding:"required"`
 	CreatedAt    time.Time     `json:"created_at" bson:"created_at"`
 }
 
-type Location struct {
-	City    string `json:"city" bson:"city"`
-	Country string `json:"country" bson:"country"`
-	Address string `json:"address" bson:"address"`
-	State   string `json:"state" bson:"state"`
-	ZipCode string `json:"zip_code" bson:"zip_code"`
-}
+type SourceMetadata map[string]interface{}
 
-type Event struct {
-	Id             bson.ObjectId `json:"id" bson:"_id"`
-	Name           string        `json:"name" bson:"name"`
-	ImageURL       url.URL       `json:"image_url" bson:"image_url"`
-	Source         EventSource   `json:"source" bson:"source"`
-	SourceMetadata interface{}   `json:"source_metadata" bson:"source_metadata"`
+type ExperienceActivity struct {
+	StartsAt       time.Time      `json:"starts_at" bson:"starts_at"`
+	EndsAt         time.Time      `json:"ends_at" bson:"ends_at"`
+	Name           string         `json:"name" bson:"name" binding:"required"`
+	ImageURL       string         `json:"image_url" bson:"image_url"`
+	Source         ActivitySource `json:"source" bson:"source" binding:"exists"`
+	SourceMetadata SourceMetadata `json:"source_metadata" bson:"source_metadata"`
 }

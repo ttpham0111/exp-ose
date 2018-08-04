@@ -9,7 +9,7 @@ import (
 	"github.com/ttpham0111/exp-ose/exp/database"
 	"github.com/ttpham0111/exp-ose/exp/services"
 
-	"github.com/ttpham0111/exp-ose/exp/v1/events"
+	"github.com/ttpham0111/exp-ose/exp/v1/activities"
 	"github.com/ttpham0111/exp-ose/exp/v1/experiences"
 )
 
@@ -47,14 +47,13 @@ func (server *Server) newRouter() *gin.Engine {
 		})
 	})
 
-	events.Register(router.Group("/v1/events"), &events.Service{
-		Collection: server.db.EventCollection,
-		Yelp:       server.yelp,
+	activities.Register(router.Group("/v1/activities"), &activities.Service{
+		ActivityCollection: server.db.ActivityCollection,
+		Yelp:               server.yelp,
 	})
 
 	experiences.Register(router.Group("/v1/experiences"), &experiences.Service{
 		ExperienceCollection: server.db.ExperienceCollection,
-		EventCollection:      server.db.EventCollection,
 	})
 
 	return router
