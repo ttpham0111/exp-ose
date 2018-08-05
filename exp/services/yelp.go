@@ -45,11 +45,11 @@ type YelpBusiness struct {
 }
 
 type YelpQuery struct {
-	Term      string   `form:"term"`
-	Location  string   `form:"location"`
-	Latitude  *float64 `form:"latitude" binding:"omitempty"`
-	Longitude *float64 `form:"longitude" binding:"omitempty"`
-	Limit     int      `form:"limit" binding:"omitempty,gt=0"`
+	Term      string `form:"term"`
+	Location  string `form:"location"`
+	Latitude  string `form:"latitude" binding:"omitempty,latitude"`
+	Longitude string `form:"longitude" binding:"omitempty,longitude"`
+	Limit     int    `form:"limit" binding:"omitempty,gt=0"`
 }
 
 func (q YelpQuery) Encode() string {
@@ -60,9 +60,9 @@ func (q YelpQuery) Encode() string {
 		v.Add("location", q.Location)
 	}
 
-	if q.Latitude != nil && q.Longitude != nil {
-		v.Add("latitude", strconv.FormatFloat(*q.Latitude, 'f', -1, 64))
-		v.Add("longitude", strconv.FormatFloat(*q.Latitude, 'f', -1, 64))
+	if q.Latitude != "" && q.Longitude != "" {
+		v.Add("latitude", q.Latitude)
+		v.Add("longitude", q.Longitude)
 	}
 
 	if q.Limit > 0 {
