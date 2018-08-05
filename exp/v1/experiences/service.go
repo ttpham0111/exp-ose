@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gopkg.in/go-playground/validator.v8"
 
 	"github.com/ttpham0111/exp-ose/exp/database"
 	"github.com/ttpham0111/exp-ose/exp/util"
@@ -23,8 +22,7 @@ func (s *Service) find(c *gin.Context) {
 
 	var modifier database.QueryModifier
 	if err := c.ShouldBindQuery(&modifier); err != nil {
-		e := util.FirstError(err.(validator.ValidationErrors))
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid value for " + e.Name})
+		util.HandleBindError(c, err)
 		return
 	}
 

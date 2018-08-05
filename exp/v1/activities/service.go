@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/ttpham0111/exp-ose/exp/services"
+	"github.com/ttpham0111/exp-ose/exp/util"
 )
 
 type Service struct {
@@ -15,7 +16,7 @@ type Service struct {
 func (s *Service) find(c *gin.Context) {
 	var query services.YelpQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		util.HandleBindError(c, err)
 		return
 	}
 

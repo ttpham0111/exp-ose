@@ -47,8 +47,8 @@ type YelpBusiness struct {
 type YelpQuery struct {
 	Term      string   `form:"term"`
 	Location  string   `form:"location"`
-	Latitude  *float64 `form:"latitude" binding:"omitempty,latitude"`
-	Longitude *float64 `form:"longitude" binding:"omitempty,longitude"`
+	Latitude  *float64 `form:"latitude" binding:"omitempty"`
+	Longitude *float64 `form:"longitude" binding:"omitempty"`
 	Limit     int      `form:"limit" binding:"omitempty,gt=0"`
 }
 
