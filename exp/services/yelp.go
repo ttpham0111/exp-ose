@@ -32,7 +32,7 @@ type YelpLocation struct {
 	Address2 string `json:"address2"`
 	Address3 string `json:"address3"`
 	State    string `json:"state"`
-	ZipCode  string `json: zip_code`
+	ZipCode  string `json:"zip_code"`
 }
 
 type YelpBusiness struct {
