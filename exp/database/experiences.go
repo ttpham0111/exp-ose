@@ -38,14 +38,16 @@ type ExperienceCollection struct {
 
 type ExperienceQuery struct {
 	Owner     string   `form:"owner"`
-	IsPrivate bool     `form:"is_private"`
+	IsPrivate *bool    `form:"is_private"`
 	Name      string   `form:"name"`
 	Tags      []string `form:"tags" binding:"omitempty,gt=0"`
 }
 
 func (c *ExperienceCollection) Find(eq ExperienceQuery, m QueryModifier) ([]*Experience, error) {
-	var fq = bson.M{
-		"is_private": eq.IsPrivate,
+	fq := make(bson.M)
+
+	if eq.IsPrivate != nil {
+		fq["is_private"] = *eq.IsPrivate
 	}
 
 	if eq.Owner != "" {
