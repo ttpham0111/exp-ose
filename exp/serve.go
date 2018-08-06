@@ -18,9 +18,10 @@ const (
 )
 
 type Server struct {
-	conf *config
-	db   *database.Database
-	yelp services.YelpService
+	conf       *config
+	db         *database.Database
+	yelp       services.YelpService
+	eventbrite services.EventbriteService
 }
 
 func NewServer() (*Server, error) {
@@ -31,9 +32,10 @@ func NewServer() (*Server, error) {
 	}
 
 	return &Server{
-		conf: conf,
-		db:   db,
-		yelp: services.NewYelpService(conf.yelpApiKey),
+		conf:       conf,
+		db:         db,
+		yelp:       services.NewYelpService(conf.yelpApiKey),
+		eventbrite: services.NewEventbriteService(conf.eventbriteApiToken),
 	}, nil
 }
 
@@ -48,7 +50,8 @@ func (server *Server) newRouter() *gin.Engine {
 	})
 
 	activities.Register(router.Group("/v1/activities"), &activities.Service{
-		Yelp: server.yelp,
+		Yelp:       server.yelp,
+		Eventbrite: server.eventbrite,
 	})
 
 	experiences.Register(router.Group("/v1/experiences"), &experiences.Service{

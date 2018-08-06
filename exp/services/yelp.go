@@ -7,10 +7,10 @@ import (
 	"strconv"
 )
 
-const businessAPI = "/businesses"
+const businessesAPI = "/businesses"
 
 type YelpService interface {
-	FindBusinesses(Query) ([]YelpBusiness, error)
+	FindBusinesses(ServiceQuery) ([]*YelpBusiness, error)
 }
 
 type yelpServiceContext struct {
@@ -44,15 +44,7 @@ type YelpBusiness struct {
 	Location    YelpLocation `json:"location"`
 }
 
-type YelpQuery struct {
-	Term      string `form:"term"`
-	Location  string `form:"location"`
-	Latitude  string `form:"latitude" binding:"omitempty,latitude"`
-	Longitude string `form:"longitude" binding:"omitempty,longitude"`
-	Limit     int    `form:"limit" binding:"omitempty,gt=0"`
-}
-
-func (q YelpQuery) Encode() string {
+func encodeYelpQuery(q ServiceQuery) string {
 	v := url.Values{}
 	v.Add("term", q.Term)
 
@@ -72,8 +64,8 @@ func (q YelpQuery) Encode() string {
 	return v.Encode()
 }
 
-func (ctx *yelpServiceContext) FindBusinesses(query Query) ([]YelpBusiness, error) {
-	url := ctx.apiURL + businessAPI + "/search?" + query.Encode()
+func (ctx *yelpServiceContext) FindBusinesses(query ServiceQuery) ([]*YelpBusiness, error) {
+	url := ctx.apiURL + businessesAPI + "/search?" + encodeYelpQuery(query)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -92,7 +84,7 @@ func (ctx *yelpServiceContext) FindBusinesses(query Query) ([]YelpBusiness, erro
 	}
 
 	var body struct {
-		Businesses []YelpBusiness `json:"businesses"`
+		Businesses []*YelpBusiness `json:"businesses"`
 	}
 	if err = json.NewDecoder(res.Body).Decode(&body); err != nil {
 		return nil, err

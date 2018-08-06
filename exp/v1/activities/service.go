@@ -11,12 +11,13 @@ import (
 )
 
 type Service struct {
-	Yelp services.YelpService
+	Yelp       services.YelpService
+	Eventbrite services.EventbriteService
 }
 
 func (s *Service) find(c *gin.Context) {
-	var yelpQuery services.YelpQuery
-	if err := c.ShouldBindQuery(&yelpQuery); err != nil {
+	var query services.ServiceQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
 		util.HandleBindError(c, err)
 		return
 	}
@@ -25,12 +26,13 @@ func (s *Service) find(c *gin.Context) {
 	errorsChan := make(chan error)
 	doneChan := make(chan interface{})
 
-	go s.getActivitiesFromYelp(yelpQuery, activitiesChan, doneChan, errorsChan)
+	go s.getActivitiesFromYelp(query, activitiesChan, doneChan, errorsChan)
+	go s.getActivitiesFromEventbrite(query, activitiesChan, doneChan, errorsChan)
 
 	var err error
 	activities := make([]database.Activity, 0)
 	done := 0
-	numServices := 1
+	numServices := 2
 
 	for done < numServices && err == nil {
 		select {
@@ -55,7 +57,7 @@ func (s *Service) find(c *gin.Context) {
 }
 
 func (s *Service) getActivitiesFromYelp(
-	query services.YelpQuery,
+	query services.ServiceQuery,
 	activities chan<- database.Activity,
 	done chan<- interface{},
 	errors chan<- error,
@@ -75,6 +77,35 @@ func (s *Service) getActivitiesFromYelp(
 				"location":     business.Location,
 				"rating":       business.Rating,
 				"review_count": business.ReviewCount,
+			},
+		}
+	}
+
+	done <- nil
+}
+
+func (s *Service) getActivitiesFromEventbrite(
+	query services.ServiceQuery,
+	activities chan<- database.Activity,
+	done chan<- interface{},
+	errors chan<- error,
+) {
+	events, err := s.Eventbrite.FindEvents(query)
+	if err != nil {
+		errors <- err
+	}
+
+	for _, event := range events {
+		activities <- database.Activity{
+			Name:     event.Name.Text,
+			ImageURL: event.Logo.Url,
+			Source:   database.Eventbrite,
+			SourceMetadata: database.SourceMetadata{
+				"url":          event.Url,
+				"description":  event.Description.Text,
+				"starts_at":    event.StartsAt.Utc,
+				"ends_at":      event.EndsAt.Utc,
+				"online_event": event.OnlineEvent,
 			},
 		}
 	}

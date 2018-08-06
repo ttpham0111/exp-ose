@@ -10,7 +10,8 @@ type config struct {
 	dbUrl  string
 	dbName string
 
-	yelpApiKey string
+	yelpApiKey         string
+	eventbriteApiToken string
 }
 
 func newConfig() *config {
@@ -22,6 +23,7 @@ func newConfig() *config {
 		dbUrl:  util.EnsureEnv("DB_URL"),
 		dbName: util.EnsureEnv("DB_NAME"),
 
-		yelpApiKey: util.EnsureEnv("YELP_API_KEY"),
+		yelpApiKey:         util.EnsureEnv("YELP_API_KEY"),
+		eventbriteApiToken: util.EnsureEnv("EVENTBRITE_API_TOKEN"),
 	}
 }
