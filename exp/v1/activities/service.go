@@ -99,13 +99,14 @@ func (s *Service) getActivitiesFromEventbrite(
 		activities <- database.Activity{
 			Name:     event.Name.Text,
 			ImageURL: event.Logo.Url,
+			StartsAt: event.StartsAt.Utc,
+			EndsAt:   event.EndsAt.Utc,
 			Source:   database.Eventbrite,
 			SourceMetadata: database.SourceMetadata{
-				"url":          event.Url,
-				"description":  event.Description.Text,
-				"starts_at":    event.StartsAt.Utc,
-				"ends_at":      event.EndsAt.Utc,
+				"url": event.Url,
+				// "description":  event.Description.Text,
 				"online_event": event.OnlineEvent,
+				"venue":        event.Venue,
 			},
 		}
 	}
