@@ -2,6 +2,7 @@ package activities
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -95,12 +96,25 @@ func (s *Service) getActivitiesFromEventbrite(
 		errors <- err
 	}
 
+	var startsAt, endsAt time.Time
+	const layout = "2006-01-02T15:04:05Z"
+
 	for _, event := range events {
+		startsAt, err = time.Parse(layout, event.StartsAt.Utc)
+		if err != nil {
+			errors <- err
+		}
+
+		endsAt, err = time.Parse(layout, event.EndsAt.Utc)
+		if err != nil {
+			errors <- err
+		}
+
 		activities <- database.Activity{
 			Name:     event.Name.Text,
 			ImageURL: event.Logo.Url,
-			StartsAt: event.StartsAt.Utc,
-			EndsAt:   event.EndsAt.Utc,
+			StartsAt: &startsAt,
+			EndsAt:   &endsAt,
 			Source:   database.Eventbrite,
 			SourceMetadata: database.SourceMetadata{
 				"url": event.Url,
